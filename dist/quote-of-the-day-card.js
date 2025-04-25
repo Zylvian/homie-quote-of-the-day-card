@@ -6,7 +6,7 @@
 let oldStates = {}
 
 
-class QuoteOfTheDayCard extends HTMLElement {
+class HomieQuoteOfTheDayCard extends HTMLElement {
 
     constructor() {
       super();
@@ -125,91 +125,45 @@ class QuoteOfTheDayCard extends HTMLElement {
       root.appendChild(card);
       this._config = cardConfig;
     }
-  
-    // Helper method that checks if there are any changes to the states before it refreshes the card. See @swampen PR #41 in air-visual-card
-    shouldNotUpdate(config, hass) {
-      let clone = JSON.parse(JSON.stringify(config))
-      // Here, delete any config attribute that should not be checked for updates
-      delete clone["image"]
-      delete clone["feed_attribute"]
-      delete clone["type"]
-      let states = {}
-      for (let entity of Object.values(clone)) {
-        states[entity] = hass.states[entity]
-      }
-      if (JSON.stringify(oldStates) === JSON.stringify(states)) {
-        return true
-      }
-      oldStates = states
-      return false
-    }
 
-    set hass(hass) {
+    async set hass(hass) {
       const config = this._config;
       const root = this.shadowRoot;
       const card = root.lastChild;
-      if (this.shouldNotUpdate(config, hass)) {
-        return 
-      }
 
       this.myhass = hass;
       let card_content = '';
       let quote_content = ``;
-      const image = config.image || "/hacsfiles/quote-of-the-day-card/bg.jpg";
+      const image = config.image || "/hacsfiles/homie-quote-of-the-day-card/bg.jpg";
       const entity = config.entity;
-      const feed_attribute = config.feed_attribute;
-
 
       card_content += `<div class="quotecontainer">
         <img src="${image}" style="width:100%">
         <div class="quotecenter animate fadeIn one">`;
-       
+
       if (hass.states[entity]) {
-        const quoteList = feed_attribute ? hass.states[entity].attributes[feed_attribute] : hass.states[entity].attributes;
-        var quoteArray = [];
-        
-        // Build an array of keys while walking through quoteList dictionary.
-        // The If statement filters out common HA entity attributes like 'friendly_name', 'icon,' and 'homebridge_hidden'. Assumes remaining attributes are the RSS feed entries      
-        for (var quote in quoteList) {
-            if (quoteList.hasOwnProperty(quote) && quote !== "friendly_name" && quote !== "icon" && quote !== "homebridge_hidden") {
-                quoteArray.push(quote);
-            }
+        const {person, quote} = await fetchRandomQuote();
+        // If statement also checks for values in 'summary' and 'title'.
+        if (quote['summary'].length >= 60) {
+          quote_content += `<h2>${quote}</h2>`;
+        } else if (quote['summary'].length >= 140) {
+          quote_content += `<h3>${quote}</h3>`;
+        } else {
+          quote_content += `<h1>${quote}</h1>`;
         }
-        
-
-        // Selects random quote
-        var quoteAuthor = quoteArray[quoteArray.length * Math.random() << 0];
-        var quote = quoteList[quoteAuthor]
-
-        if (!quoteList) {
-          throw new Error("Feed is !feed");
-          debugger;
-        }  
-        
-        
-        if (quoteList == undefined) {
-          throw new Error("Feed is undefined");
-          debugger;
-        } 
-
-        // If statement also checks for values in 'summary' and 'title'. 
-        if (quote['summary'].length >= 60) { quote_content += `<h2>${quote['summary']}</h2>`; } 
-        else if (quote['summary'].length >= 140) { quote_content += `<h3>${quote['summary']}</h3>`; }              
-        else { quote_content += `<h1>${quote['summary']}</h1>`; }             
-        quote_content += `<h3>${quote['title']}</h3>`;           
-
+        quote_content += `<h3>${person}</h3>`;
         card_content += quote_content
-        card_content += `</div></div>` 
+        card_content += `</div></div>`
 
       };
       root.lastChild.hass = hass;
       root.getElementById('content').innerHTML = card_content;
 
-      
+
     }
     getCardSize() {
       return 1;
     }
 }
   
-customElements.define('quote-of-the-day-card', QuoteOfTheDayCard);
+customElements.define('homie-quote-of-the-day-card', HomieQuoteOfTheDayCard);
