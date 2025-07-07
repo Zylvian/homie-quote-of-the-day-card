@@ -1,62 +1,64 @@
 # Homie Quote of the Day Card
-![quote](images/quote.gif)
 
-Quote of the Day card uses the [Feed Parser Sensor](https://github.com/custom-components/sensor.feedparser) to pull quotes from Brainyquotes.com RSS feed and display them on a nice card. Quotes are selected randomly.
+![Homie Quote Example](images/quote.png)
 
+Homie Quote of the Day parses quotes from a Google Sheet and displays one at the set interval in the config. Personally used to Chromecast a panel (single card) to my living room TV.
 
-## Requirements
-- **Feedparser v0.0.8 or later:** Feedparser changes the way the data is stored from dictionary to list format. Quote of the Day card was updated in v0.0.4 to be compatible with this breaking change. Previous versions of Feedparser may work but are untested.
+A second view on the dashboard is used to fill in quotes and send to the Google Sheet using the Google Sheets integration.
 
-## Instructions
- 1. Download the [Feed Parser Sensor](https://github.com/custom-components/sensor.feedparser) and use the following configuration:
-
- ```yaml
-sensor:
-  - platform: feedparser
-    name: Quote of the Day
-    feed_url: 'https://www.brainyquote.com/link/quotebr.rss'
-    date_format: '%a, %b %d %I:%M %p'
+```yaml
+type: grid
+cards:
+  - type: heading
+    heading_style: title
+    heading: Add a quote!
+  - type: vertical-stack
+    cards:
+      - type: entities
+        entities:
+          - entity: input_select.google_sheet_quote_person_selector
+            name: Who said it?
+          - entity: input_text.google_sheets_text
+            name: What did the person say?
+  - show_name: true
+    show_icon: true
+    type: button
+    entity: input_button.send_google_sheets_quote
+    grid_options:
+      rows: 2
+      columns: 12
+    name: Send quote!
+    icon: mdi:check
+    tap_action:
+      action: toggle
+    hold_action:
+      action: none
 ```
-
-## HACS Instructions
- 2. Go to HACS settings and add the following custom repository (as plugin):
- 
- ```
- https://github.com/dnguyen800/quote-of-the-day-card
- ```
 
 ## Manual Instructions
 
- 2. Download the [Quote-Day-Card](https://raw.githubusercontent.com/dnguyen800/quote-of-the-day-card/master/dist/quote-of-the-day-card.js), [bg.jpg](https://github.com/dnguyen800/quote-of-the-day-card/blob/master/dist/bg.jpg) and place the files in your `config/www` folder.
+ 2. Download the **Homie-Card** and place into your `config/www` folder.
  
- 3. Add the following to the resources section of your ui-lovelace.yaml
+ 3. Add the following to the resources section of your dashboard as a Javascript module:
 
 ```yaml
-resources:
-  - url: /local/quote-of-the-day-card.js
-    type: js  
+/local/homie-card.js?v=2
 ```
 4. Write configuration for the card in your `ui-lovelace.yaml`.
 
 ```yaml
- - type: custom:quote-of-the-day-card               
-   entity: sensor.quote_of_the_day
-   feed_attribute: entries # Required if using FeedParser v0.0.8 or later
+cards:
+  - type: custom:homie-card
+    refresh_interval: 30 
 ```
 
 5. Restart Home Assistant
- 
-## Options
-| Name | Type | Default | Description
-| ---- | ---- | ------- | -----------
-| entity | string | **Required** | Name of the Feed Parser sensor that contains the Quote of the Day data.
-| feed_attribute | string | **Required** | If using Feedparser v0.0.8 or later, use **``feed_attribute: entries``**. If using an earlier Feedparser version, do not add this config.
-| image | string | /local/bg.jpg | If the background image is stored in a location other than /www/bg.jpg, you can input a different location here. Example: '/local/bg.jpg'
-
 
 
 ## Credits
+ - Inspired by https://github.com/dnguyen800/quote-of-the-day-card/tree/master
  - Background image by [Yannick Pulver](https://yannickpulver.com/) via [Unsplash](https://unsplash.com/@yanu)
- - [Feed Parser Sensor](https://github.com/custom-components/sensor.feedparser) - @iantrich For doing the hard work.
- - All the Home Assistant custom components and cards out there. I learned from your examples.
+ - https://lit.dev/docs/components/rendering/
+ - https://developers.home-assistant.io/docs/frontend/custom-ui/custom-card
+ - This card was made with a bunch of AI assistance.
  
