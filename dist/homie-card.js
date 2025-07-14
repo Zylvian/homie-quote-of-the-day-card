@@ -68,7 +68,7 @@ class HomieCard extends LitElement {
     async connectedCallback() {
         await super.connectedCallback();
         await this.loadQuote();
-        this.startHourlyRefresh();
+        this.startRefreshCycle();
     }
 
     disconnectedCallback() {
@@ -78,7 +78,7 @@ class HomieCard extends LitElement {
         }
     }
 
-    startHourlyRefresh() {
+    startRefreshCycle() {
         // Clear any existing interval
         if (this.refreshInterval) {
             clearInterval(this.refreshInterval);
@@ -99,6 +99,10 @@ class HomieCard extends LitElement {
 
         try {
             const result = await fetchRandomQuote();
+            if(result.quote === this.quoteData?.quote){
+                console.log('identical quote, running loadQuote again');
+                return await this.loadQuote();
+            }
             this.quoteData = result;
             this.lastLoadTime = Date.now();
         } catch (error) {
@@ -112,7 +116,6 @@ class HomieCard extends LitElement {
     async refreshQuote() {
         console.log('Refreshing quote...');
         // Reset quote data to trigger a new load
-        this.quoteData = null;
         await this.loadQuote();
     }
 
@@ -168,7 +171,7 @@ class HomieCard extends LitElement {
 
         // Restart refresh with new interval if already running
         if (this.refreshInterval) {
-            this.startHourlyRefresh();
+            this.startRefreshCycle();
         }
     }
 
