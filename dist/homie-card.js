@@ -101,6 +101,7 @@ class HomieCard extends LitElement {
             const result = await fetchRandomQuote();
             if(result.quote === this.quoteData?.quote){
                 console.log('identical quote, running loadQuote again');
+                this.isLoading = false;
                 return await this.loadQuote();
             }
             this.quoteData = result;
@@ -165,6 +166,7 @@ class HomieCard extends LitElement {
                 throw new Error('refresh_interval must be a positive number (in minutes)');
             }
             this.refreshIntervalMs = minutes * 60 * 1000;
+            console.log(`Refresh interval set to ${minutes} minutes`);
         }
 
         this.config = config;
