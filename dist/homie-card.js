@@ -214,6 +214,7 @@ class HomieCard extends LitElement {
 
         }
         .quote {
+            overflow-wrap: break-word;
             font-size: 3.2rem;
             font-style: italic;
             margin-bottom: 15px;
